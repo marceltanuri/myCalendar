@@ -1,0 +1,11 @@
+{
+    "mappings": [
+        {
+            "regex": [
+                "<name of your calendar event, or even part of the name>"
+            ],
+            "jiraTicket": "<your_jira_ticket_id_here>"
+        }
+        
+    ]
+}
