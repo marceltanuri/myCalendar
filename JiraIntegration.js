@@ -42,7 +42,7 @@ module.exports = class JiraIntegration {
 
                 workLogTitle += (" - " + event.description.substring(0, Constants.MAX_DESCRIPTION_LENGTH))
 
-                if(workLogTitle.length > maxDescriptionLength)
+                if(workLogTitle.length > Constants.MAX_DESCRIPTION_LENGTH)
                     workLogTitle += "..."
             }
 
