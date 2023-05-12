@@ -1,5 +1,6 @@
 const Calendar = require("./Calendar")
 const fetch = require('node-fetch');
+const Constants = require("./Constants");
 
 
 module.exports = class JiraIntegration {
@@ -9,6 +10,21 @@ module.exports = class JiraIntegration {
 
         if (calendar instanceof Calendar)
             this.calendar = calendar
+    }
+
+
+    async getTodaysWorkLogs() {
+        const todayEventsWithJiraTickets = await this.calendar.getTodayEventsWithJiraTickets()
+
+        let todaysWorkLogs = this.#convertFromCalendarEventToWorkLogObject(todayEventsWithJiraTickets)
+
+        return todaysWorkLogs
+    }
+
+    async getWorkLogsFromUntil(startDate, endDate) {
+        const eventsWithJiraTickets = await this.calendar.getEventsWithJiraTickets({ "startDate": new Date(startDate).toISOString(), "endDate": new Date(endDate).toISOString() })
+        let workLogs = this.#convertFromCalendarEventToWorkLogObject(eventsWithJiraTickets)
+        return workLogs
     }
 
     async #convertFromCalendarEventToWorkLogObject(events) {
@@ -21,10 +37,14 @@ module.exports = class JiraIntegration {
         events.forEach(event => {
 
             let workLogTitle = event.summary
-            if (event.description != undefined && event.description.length > 2 && event.description.length <= 100) {
-                workLogTitle += (" - " + event.description)
-            }
 
+            if (event.description != undefined && event.description.length > Constants.MIN_DESCRIPTION_LENGTH) {
+
+                workLogTitle += (" - " + event.description.substring(0, Constants.MAX_DESCRIPTION_LENGTH))
+
+                if(workLogTitle.length > maxDescriptionLength)
+                    workLogTitle += "..."
+            }
 
             const timeSpentInHour = this.#calculateSpentTimeInHour(event.start.dateTime, event.end.dateTime)
             workLogs.totalSpentTimeInHours += parseFloat(timeSpentInHour)
@@ -45,22 +65,17 @@ module.exports = class JiraIntegration {
 
     }
 
-    async getTodaysWorkLogs() {
-        const todayEventsWithJiraTickets = await this.calendar.getTodayEventsWithJiraTickets()
+    #calculateSpentTimeInHour(startTime, endTime) {
+        if (startTime == undefined ?? endTime == undefined) {
+            return "0"
+        }
 
-        let todaysWorkLogs = this.#convertFromCalendarEventToWorkLogObject(todayEventsWithJiraTickets)
+        const spentTimeInHours = (new Date(endTime) - (new Date(startTime))) / 1000 / 60 / 60
 
-        return todaysWorkLogs
-    }
-
-    async getWorkLogsFromUntil(startDate, endDate) {
-        const eventsWithJiraTickets = await this.calendar.getEventsWithJiraTickets({ "startDate": new Date(startDate).toISOString(), "endDate": new Date(endDate).toISOString() })
-        let workLogs = this.#convertFromCalendarEventToWorkLogObject(eventsWithJiraTickets)
-        return workLogs
+        return spentTimeInHours
     }
 
     sendWorkLog(workLog) {
-
 
         console.log(`${this.jiraHost}/rest/api/2/issue/${workLog.ticketId}/worklog`)
         fetch(`${this.jiraHost}/rest/api/2/issue/${workLog.ticketId}/worklog`, {
@@ -80,16 +95,4 @@ module.exports = class JiraIntegration {
             .then(text => console.log(text))
             .catch(err => console.error(err));
     }
-
-    #calculateSpentTimeInHour(startTime, endTime) {
-        if (startTime == undefined ?? endTime == undefined) {
-            return "0"
-        }
-
-        const spentTimeInHours = (new Date(endTime) - (new Date(startTime))) / 1000 / 60 / 60
-
-        return spentTimeInHours
-    }
-
-
 }
