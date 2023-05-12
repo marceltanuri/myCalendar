@@ -16,6 +16,7 @@
     "googleapis": "^105.0.0",
     "install": "^0.13.0",
     "npm": "^9.6.6",
+    "prompt-confirm": "^2.0.4",
     "prompt-sync": "^4.2.0"
   }
 }
