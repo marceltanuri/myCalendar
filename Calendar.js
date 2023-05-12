@@ -96,7 +96,7 @@ module.exports = class Calendar {
         const searchResult = new Fuse(this.#config.mappings, {
             keys: ['regex'],
             ignoreLocation: true,
-            threshold: 0.8
+            threshold: 0.6
         }).search(event.summary)
 
         if (searchResult.length > 0) {
