@@ -8,8 +8,8 @@ const { authenticate } = require('@google-cloud/local-auth')
 module.exports = class AuthUtil {
 
     static #SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
-    static #TOKEN_PATH = path.join(process.cwd(), 'oauth/token.json')
-    static #CREDENTIALS_PATH = path.join(process.cwd(), 'oauth/credentials.json')
+    static #TOKEN_PATH = path.join(process.cwd(), 'calendar/oauth/token.json')
+    static #CREDENTIALS_PATH = path.join(process.cwd(), 'calendar/oauth/credentials.json')
 
     /**
 * Reads previously authorized credentials from the save file.

@@ -1,4 +1,4 @@
-const Calendar = require("./Calendar")
+const Calendar = require("./calendar/Calendar")
 const fetch = require('node-fetch');
 const Constants = require("./Constants");
 

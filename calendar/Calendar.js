@@ -9,6 +9,7 @@ const AuthUtil = require('./AuthUtil')
 
 module.exports = class Calendar {
 
+    
     #CONFIG_PATH = path.join(process.cwd(), 'config/config.json')
     #config = JSON.parse(fs.readFileSync(this.#CONFIG_PATH))
 

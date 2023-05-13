@@ -1,45 +1,39 @@
 
-const Calendar = require("./Calendar")
+const Calendar = require("./calendar/Calendar")
+const DateUtil = require("./util/DateUtil")
 const JiraIntegration = require("./JiraIntegration")
 const Confirm = require('prompt-confirm')
-
+const ValidatorUtil = require("./util/ValidatorUtil")
 
 async function run() {
 
     const jiraHost = process.argv[2]
+    if (!ValidatorUtil.isHost(jiraHost)) {
+        console.error("Host parameter is not a valid host")
+        return
+    }
 
     const jiraIntegration = new JiraIntegration(jiraHost, new Calendar())
 
-    let startDate = null
-    let endDate = null
-
     const command = process.argv[3]
 
-    if (command == "today") {
-        startDate = getTodayStartTime()
-        endDate = getTodayEndTime()
-    }
+    let startDate = getStartDate(command)
+    let endDate = getEndDate(command)
 
-    else if (command == "yesterday") {
-        startDate = getYesterdayStartTime()
-        endDate = getYesterdayEndTime()
-    }
-
-    else {
-        const startDateString = process.argv[3]
-        startDate = new Date(startDateString)
-
-        const endDateString = process.argv[4]
-        endDate = new Date(endDateString)
-    }
-
+    console.log("Extracting work logs from Google Calendar...")
     const workLogs = await jiraIntegration.getWorkLogsFromUntil(startDate, endDate)
+    if (workLogs == undefined || workLogs.workLogs == undefined || workLogs.workLogs.length== 0){
+        console.log("No work log found for the selected period")
+        return
+    }
+
     console.log(workLogs)
     const prompt = new Confirm('Do you want to send them all to JIRA?')
+
     prompt.run()
         .then(function (answer) {
             if (answer == true) {
-                console.log("sending worklogs via JIRA API...")
+                console.log("sending work logs via JIRA API...")
                 workLogs.workLogs.forEach(async workLog => {
                     if (workLog.ticketId != undefined)
                         jiraIntegration.sendWorkLog(workLog)
@@ -48,82 +42,41 @@ async function run() {
         })
 }
 
-function getTodayStartTime() {
-    let startDate = new Date()
-    const startTime = process.argv[4]
+function getStartDate(command) {
 
-    if (startTime != undefined) {
-        startDate.setHours(startTime.split(":")[0])
-        startDate.setMinutes(startTime.split(":")[1])
-        startDate.setSeconds(0)
-        startDate.setMilliseconds(0)
+    if (command == "today") {
+        return DateUtil.getTodayStartTime()
     }
+
+    else if (command == "yesterday") {
+        return DateUtil.getYesterdayStartTime()
+    }
+
     else {
-        startDate.setHours(0)
-        startDate.setMinutes(0)
-        startDate.setSeconds(0)
-        startDate.setMilliseconds(0)
+        const startDateString = process.argv[3]
+        return new Date(startDateString)
+
     }
-    return startDate
+
+
 }
 
-function getYesterdayStartTime() {
-    let yesterdayDate = new Date()
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1)
-    const startTime = process.argv[4]
+function getEndDate(command) {
 
-    if (startTime != undefined) {
-        yesterdayDate.setHours(startTime.split(":")[0])
-        yesterdayDate.setMinutes(startTime.split(":")[1])
-        yesterdayDate.setSeconds(0)
-        yesterdayDate.setMilliseconds(0)
+    if (command == "today") {
+        return DateUtil.getTodayEndTime()
     }
+
+    else if (command == "yesterday") {
+        return DateUtil.getYesterdayEndTime()
+    }
+
     else {
-        yesterdayDate.setHours(0)
-        yesterdayDate.setMinutes(0)
-        yesterdayDate.setSeconds(0)
-        yesterdayDate.setMilliseconds(0)
+        const endDateString = process.argv[4]
+        return new Date(endDateString)
     }
-    return yesterdayDate
+
 }
 
-function getYesterdayEndTime() {
-    let yesterdayDate = new Date()
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1)
-    const startTime = process.argv[5]
-
-    if (startTime != undefined) {
-        yesterdayDate.setHours(startTime.split(":")[0])
-        yesterdayDate.setMinutes(startTime.split(":")[1])
-        yesterdayDate.setSeconds(59)
-        yesterdayDate.setMilliseconds(999)
-    }
-    else {
-        yesterdayDate.setHours(23)
-        yesterdayDate.setMinutes(59)
-        yesterdayDate.setSeconds(59)
-        yesterdayDate.setMilliseconds(999)
-    }
-    return yesterdayDate
-}
-
-function getTodayEndTime() {
-    let startDate = new Date()
-    const startTime = process.argv[5]
-
-    if (startTime != undefined) {
-        startDate.setHours(startTime.split(":")[0])
-        startDate.setMinutes(startTime.split(":")[1])
-        startDate.setSeconds(59)
-        startDate.setMilliseconds(999)
-    }
-    else {
-        startDate.setHours(23)
-        startDate.setMinutes(59)
-        startDate.setSeconds(59)
-        startDate.setMilliseconds(999)
-    }
-    return startDate
-}
 
 run()
