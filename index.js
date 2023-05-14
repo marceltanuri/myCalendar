@@ -15,7 +15,9 @@ async function run() {
 
     const jiraIntegration = new JiraIntegration(jiraHost, new Calendar())
 
-    const command = process.argv[3]
+    const command = await getOperation()
+
+    console.log("Selected operation: " + command)
 
     let startDate = getStartDate(command)
     let endDate = getEndDate(command)
@@ -40,6 +42,11 @@ async function run() {
                 })
             }
         })
+}
+
+async function getOperation(){
+    return process.argv[3]
+
 }
 
 function getStartDate(command) {

@@ -79,10 +79,11 @@ module.exports = class JiraIntegration {
 
         console.log(`${this.jiraHost}/rest/api/2/issue/${workLog.ticketId}/worklog`)
         fetch(`${this.jiraHost}/rest/api/2/issue/${workLog.ticketId}/worklog`, {
-            method: 'POST',
+            method: 'GET',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + Buffer.from(process.env.jira_username + ":" + process.env.jira_pw).toString('base64')                
             },
             body: JSON.stringify(workLog)
         })
@@ -92,7 +93,6 @@ module.exports = class JiraIntegration {
                 );
                 return response.text();
             })
-            .then(text => console.log(text))
             .catch(err => console.error(err));
     }
 }
