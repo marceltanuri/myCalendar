@@ -79,7 +79,7 @@ module.exports = class JiraIntegration {
 
         console.log(`${this.jiraHost}/rest/api/2/issue/${workLog.ticketId}/worklog`)
         fetch(`${this.jiraHost}/rest/api/2/issue/${workLog.ticketId}/worklog`, {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
